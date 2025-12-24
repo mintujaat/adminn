@@ -370,3 +370,27 @@ if (deleteAllVisitors) {
   };
 }
 
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+/* ================= AUTH ================= */
+const auth = getAuth(app);
+
+/* AUTH GUARD */
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.replace("admin-login.html");
+  }
+});
+
+/* LOGOUT */
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.replace("admin-login.html");
+  });
+}
