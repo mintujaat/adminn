@@ -328,3 +328,78 @@ deleteTicketBtn.onclick = async () => {
   currentTicketId = null;
   loadTickets();
 };
+
+/* ================= VISITORS (FINAL + DELETE + IP) ================= */
+async function loadVisitors() {
+  if (!visitorList) return;
+
+  visitorList.innerHTML = "";
+  showLoader();
+
+  const snap = await getDocs(
+    query(collection(db, "visitors"), orderBy("visitedAt", "desc"))
+  );
+
+  snap.forEach(d => {
+    const v = d.data();
+
+    const div = document.createElement("div");
+    div.className = "list-item";
+
+    div.innerHTML = `
+      <div>
+        <strong>${v.device || "—"}</strong> • ${v.browser || "—"}<br>
+        <small>
+          IP: ${v.ip || "—"}<br>
+          ${v.city || ""} ${v.region || ""} ${v.country || ""}<br>
+          OS: ${v.os || "—"} | Screen: ${v.screen || "—"}<br>
+          ${v.visitedAt?.seconds
+            ? new Date(v.visitedAt.seconds * 1000).toLocaleString()
+            : ""}
+        </small>
+      </div>
+      <button class="danger">Delete</button>
+    `;
+
+    div.querySelector(".danger").onclick = async () => {
+      const ok = confirm("Delete this visitor?");
+      if (!ok) return;
+
+      showLoader();
+      await deleteDoc(doc(db, "visitors", d.id));
+      loadVisitors();
+      hideLoader();
+    };
+
+    visitorList.appendChild(div);
+  });
+
+  hideLoader();
+}
+/* ================= DELETE ALL VISITORS ================= */
+const deleteAllBtn = document.getElementById("deleteAllVisitors");
+
+deleteAllBtn.onclick = async () => {
+  const confirm1 = confirm("⚠️ This will delete ALL visitors. Continue?");
+  if (!confirm1) return;
+
+  const confirm2 = confirm("❗ Are you REALLY sure? This cannot be undone.");
+  if (!confirm2) return;
+
+  showLoader();
+
+  const snap = await getDocs(collection(db, "visitors"));
+  const promises = [];
+
+  snap.forEach(d => {
+    promises.push(deleteDoc(doc(db, "visitors", d.id)));
+  });
+
+  await Promise.all(promises);
+
+  visitorList.innerHTML = "";
+  hideLoader();
+
+  alert("✅ All visitors deleted");
+};
+
