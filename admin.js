@@ -82,7 +82,22 @@ saveProfile.onclick = async () => {
   });
   hideLoader();
 };
+/* Visitors */
+const visitorList = document.getElementById("visitorList");
 
+/* ================= LOADER ================= */
+const showLoader = () => loader?.classList.remove("hidden");
+const hideLoader = () => loader?.classList.add("hidden");
+
+/* ================= TABS ================= */
+document.querySelectorAll(".sidebar button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(btn.dataset.tab)?.classList.add("active");
+
+    if (btn.dataset.tab === "visitors") loadVisitors();
+  };
+});
 /* ================= SOCIALS ================= */
 addSocial.onclick = async () => {
   showLoader();
@@ -402,4 +417,5 @@ deleteAllBtn.onclick = async () => {
 
   alert("✅ All visitors deleted");
 };
+
 
