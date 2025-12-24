@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;font-family:system-ui,sans-serif}
+body{
+  margin:0;min-height:100vh;
+  background:#0b0b0b;color:#fff;
+  display:flex;justify-content:center;align-items:center
+}
+.box{
+  width:100%;max-width:360px;
+  background:#111;border:1px solid #222;
+  border-radius:14px;padding:20px
+}
+h2{text-align:center;margin:0 0 16px}
+input{
+  width:100%;padding:11px;border-radius:8px;
+  border:1px solid #222;background:#0d0d0d;
+  color:#fff;margin-bottom:10px
+}
+button{
+  width:100%;padding:11px;border-radius:8px;
+  border:none;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#000
+}
+.msg{margin-top:10px;font-size:13px;text-align:center;color:#ef4444}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2>Admin Login</h2>
+  <input id="email" type="email" placeholder="Admin Email">
+  <input id="password" type="password" placeholder="Password">
+  <button id="login">Login</button>
+  <div id="msg" class="msg"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGnqFDBgUcBkl4TA2HYe8U-enFtuzpW8I",
+  authDomain: "mintuuu.firebaseapp.com",
+  projectId: "mintuuu"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const loginBtn = document.getElementById("login");
+const msg = document.getElementById("msg");
+
+loginBtn.onclick = async () => {
+  msg.textContent = "Logging in...";
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      email.value.trim(),
+      password.value.trim()
+    );
+    window.location.href = "min2.html";
+  } catch (e) {
+    msg.textContent = "Invalid email or password";
+  }
+};
+</script>
+</body>
+</html>
