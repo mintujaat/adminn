@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin – Domain Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;font-family:system-ui,sans-serif}
+body{
+  margin:0;min-height:100vh;
+  background:#0b0b0b;color:#fff;
+  display:flex;justify-content:center;align-items:center
+}
+.panel{
+  width:100%;max-width:420px;
+  background:#111;border:1px solid #222;
+  border-radius:16px;padding:20px
+}
+h2{text-align:center;margin:0 0 14px}
+input{
+  width:100%;padding:11px;border-radius:8px;
+  border:1px solid #222;background:#0d0d0d;
+  color:#fff;margin-bottom:10px
+}
+button{
+  width:100%;padding:11px;border-radius:8px;
+  border:none;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#000
+}
+.list{margin-top:14px}
+.item{
+  display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:6px;
+  font-size:14px
+}
+.item button{
+  background:#ef4444;color:#fff;
+  padding:4px 8px;border-radius:6px;font-size:12px
+}
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGnqFDBgUcBkl4TA2HYe8U-enFtuzpW8I",
+  authDomain: "mintuuu.firebaseapp.com",
+  projectId: "mintuuu",
+  messagingSenderId: "795208515782",
+  appId: "1:795208515782:web:b6649939729ceb669197c7"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const input=document.getElementById("domain");
+const addBtn=document.getElementById("add");
+const list=document.getElementById("list");
+
+const normalize=d=>d.toLowerCase().replace(/^https?:\/\//,"")
+ .replace(/^www\./,"").replace(/\/$/,"");
+
+addBtn.onclick=async()=>{
+  const v=normalize(input.value.trim());
+  if(!v) return;
+  await addDoc(collection(db,"verifiedDomains"),{domain:v});
+  input.value="";
+  load();
+};
+
+async function load(){
+  list.innerHTML="";
+  const snap=await getDocs(collection(db,"verifiedDomains"));
+  snap.forEach(d=>{
+    const div=document.createElement("div");
+    div.className="item";
+    div.innerHTML=`<span>${d.data().domain}</span><button>Delete</button>`;
+    div.querySelector("button").onclick=async()=>{
+      await deleteDoc(doc(db,"verifiedDomains",d.id));
+      load();
+    };
+    list.appendChild(div);
+  });
+}
+load();
+</script>
+</head>
+
+<body>
+<div class="panel">
+  <h2>Domain Admin Panel</h2>
+  <input id="domain" placeholder="Add domain (example.com)">
+  <button id="add">Add Domain</button>
+  <div class="list" id="list"></div>
+</div>
+</body>
+</html>
