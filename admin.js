@@ -26,39 +26,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= DOM ================= */
+/* ================= COMMON ================= */
 const loader = document.getElementById("loader");
-
-/* Profile */
-const saveProfile = document.getElementById("saveProfile");
-const profilePic = document.getElementById("profilePic");
-const profileName = document.getElementById("profileName");
-const profileSubtitle = document.getElementById("profileSubtitle");
-
-/* Socials */
-const addSocial = document.getElementById("addSocial");
-const socialName = document.getElementById("socialName");
-const socialIcon = document.getElementById("socialIcon");
-const socialUrl = document.getElementById("socialUrl");
-const socialEnabled = document.getElementById("socialEnabled");
-const socialList = document.getElementById("socialList");
-
-/* Navigation */
-const addNav = document.getElementById("addNav");
-const navLabel = document.getElementById("navLabel");
-const navUrl = document.getElementById("navUrl");
-const navOrder = document.getElementById("navOrder");
-const navNewTab = document.getElementById("navNewTab");
-const navEnabled = document.getElementById("navEnabled");
-const navList = document.getElementById("navList");
-
-/* Posts */
-const addPost = document.getElementById("addPost");
-const postImage = document.getElementById("postImage");
-const postCaption = document.getElementById("postCaption");
-const postList = document.getElementById("postList");
-
-/* ================= LOADER ================= */
 const showLoader = () => loader?.classList.remove("hidden");
 const hideLoader = () => loader?.classList.add("hidden");
 
@@ -69,10 +38,16 @@ document.querySelectorAll(".sidebar button").forEach(btn => {
     document.getElementById(btn.dataset.tab)?.classList.add("active");
 
     if (btn.dataset.tab === "tickets") loadTickets();
+    if (btn.dataset.tab === "visitors") loadVisitors();
   };
 });
 
 /* ================= PROFILE ================= */
+const saveProfile = document.getElementById("saveProfile");
+const profilePic = document.getElementById("profilePic");
+const profileName = document.getElementById("profileName");
+const profileSubtitle = document.getElementById("profileSubtitle");
+
 saveProfile.onclick = async () => {
   showLoader();
   await setDoc(doc(db, "profile", "main"), {
@@ -82,23 +57,15 @@ saveProfile.onclick = async () => {
   });
   hideLoader();
 };
-/* Visitors */
-const visitorList = document.getElementById("visitorList");
 
-/* ================= LOADER ================= */
-const showLoader = () => loader?.classList.remove("hidden");
-const hideLoader = () => loader?.classList.add("hidden");
-
-/* ================= TABS ================= */
-document.querySelectorAll(".sidebar button").forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.getElementById(btn.dataset.tab)?.classList.add("active");
-
-    if (btn.dataset.tab === "visitors") loadVisitors();
-  };
-});
 /* ================= SOCIALS ================= */
+const addSocial = document.getElementById("addSocial");
+const socialName = document.getElementById("socialName");
+const socialIcon = document.getElementById("socialIcon");
+const socialUrl = document.getElementById("socialUrl");
+const socialEnabled = document.getElementById("socialEnabled");
+const socialList = document.getElementById("socialList");
+
 addSocial.onclick = async () => {
   showLoader();
   await addDoc(collection(db, "socials"), {
@@ -132,14 +99,17 @@ async function loadSocials() {
 loadSocials();
 
 /* ================= NAVIGATION ================= */
+const addNav = document.getElementById("addNav");
+const navLabel = document.getElementById("navLabel");
+const navUrl = document.getElementById("navUrl");
+const navOrder = document.getElementById("navOrder");
+const navNewTab = document.getElementById("navNewTab");
+const navEnabled = document.getElementById("navEnabled");
+const navList = document.getElementById("navList");
 let editingNavId = null;
 
 addNav.onclick = async () => {
-  if (!navLabel.value || !navUrl.value) {
-    alert("Label & URL required");
-    return;
-  }
-
+  if (!navLabel.value || !navUrl.value) return alert("Label & URL required");
   showLoader();
 
   const data = {
@@ -162,35 +132,26 @@ addNav.onclick = async () => {
   navLabel.value = navUrl.value = navOrder.value = "";
   navNewTab.checked = true;
   navEnabled.checked = true;
-
   loadNav();
   hideLoader();
 };
 
 async function loadNav() {
   navList.innerHTML = "";
-  showLoader();
-
   const snap = await getDocs(collection(db, "navigation"));
   const items = [];
-
-  snap.forEach(d => {
-    const n = d.data();
-    items.push({ id: d.id, ...n, order: n.order ?? 999 });
-  });
-
+  snap.forEach(d => items.push({ id: d.id, ...d.data(), order: d.data().order ?? 999 }));
   items.sort((a, b) => a.order - b.order);
 
   items.forEach(n => {
     const div = document.createElement("div");
     div.className = "list-item";
     div.innerHTML = `
-      <strong>${n.label}</strong> (Order: ${n.order})<br>
+      <strong>${n.label}</strong> (Order ${n.order})<br>
       <small>${n.url}</small><br>
       <button class="edit">Edit</button>
       <button class="danger">Delete</button>
     `;
-
     div.querySelector(".edit").onclick = () => {
       navLabel.value = n.label;
       navUrl.value = n.url;
@@ -200,23 +161,24 @@ async function loadNav() {
       editingNavId = n.id;
       addNav.innerText = "Update Menu";
     };
-
     div.querySelector(".danger").onclick = async () => {
-      if (!confirm("Delete this menu?")) return;
+      if (!confirm("Delete menu?")) return;
       showLoader();
       await deleteDoc(doc(db, "navigation", n.id));
       loadNav();
       hideLoader();
     };
-
     navList.appendChild(div);
   });
-
-  hideLoader();
 }
 loadNav();
 
 /* ================= POSTS ================= */
+const addPost = document.getElementById("addPost");
+const postImage = document.getElementById("postImage");
+const postCaption = document.getElementById("postCaption");
+const postList = document.getElementById("postList");
+
 addPost.onclick = async () => {
   showLoader();
   await addDoc(collection(db, "posts"), {
@@ -247,8 +209,7 @@ async function loadPosts() {
 }
 loadPosts();
 
-/* ================= TICKETS ADMIN ================= */
-
+/* ================= TICKETS ================= */
 const ticketList = document.getElementById("ticketList");
 const adminChat = document.getElementById("adminChat");
 const adminMessages = document.getElementById("adminMessages");
@@ -256,17 +217,13 @@ const adminReply = document.getElementById("adminReply");
 const sendAdminReply = document.getElementById("sendAdminReply");
 const closeTicketBtn = document.getElementById("closeTicket");
 const deleteTicketBtn = document.getElementById("deleteTicket");
-
 let currentTicketId = null;
-let unsubscribe = null;
+let unsub = null;
 
 async function loadTickets() {
   ticketList.innerHTML = "Loading...";
-  const snap = await getDocs(
-    query(collection(db, "tickets"), orderBy("createdAt", "desc"))
-  );
+  const snap = await getDocs(query(collection(db, "tickets"), orderBy("createdAt", "desc")));
   ticketList.innerHTML = "";
-
   snap.forEach(d => {
     const t = d.data();
     const div = document.createElement("div");
@@ -285,10 +242,9 @@ function openTicket(id, status) {
   currentTicketId = id;
   adminChat.classList.remove("hidden");
   adminMessages.innerHTML = "";
+  if (unsub) unsub();
 
-  if (unsubscribe) unsubscribe();
-
-  unsubscribe = onSnapshot(
+  unsub = onSnapshot(
     query(collection(db, "tickets", id, "messages"), orderBy("createdAt", "asc")),
     snap => {
       adminMessages.innerHTML = "";
@@ -309,17 +265,12 @@ function openTicket(id, status) {
 
 sendAdminReply.onclick = async () => {
   if (!currentTicketId || !adminReply.value.trim()) return;
-
   await addDoc(collection(db, "tickets", currentTicketId, "messages"), {
     from: "admin",
     text: adminReply.value.trim(),
     createdAt: serverTimestamp()
   });
-
-  await updateDoc(doc(db, "tickets", currentTicketId), {
-    status: "replied"
-  });
-
+  await updateDoc(doc(db, "tickets", currentTicketId), { status: "replied" });
   adminReply.value = "";
 };
 
@@ -337,49 +288,55 @@ closeTicketBtn.onclick = async () => {
 
 deleteTicketBtn.onclick = async () => {
   if (!currentTicketId) return;
-  if (!confirm("Delete this ticket permanently?")) return;
+  if (!confirm("Delete ticket permanently?")) return;
   await deleteDoc(doc(db, "tickets", currentTicketId));
   adminChat.classList.add("hidden");
   currentTicketId = null;
   loadTickets();
 };
 
-/* ================= VISITORS (FINAL + DELETE + IP) ================= */
+/* ================= VISITORS ================= */
+/* ================= VISITORS (FULL DETAILS) ================= */
+
+const visitorList = document.getElementById("visitorList");
+const deleteAllVisitors = document.getElementById("deleteAllVisitors");
+
 async function loadVisitors() {
   if (!visitorList) return;
 
-  visitorList.innerHTML = "";
+  visitorList.innerHTML = "Loading visitors...";
   showLoader();
 
   const snap = await getDocs(
     query(collection(db, "visitors"), orderBy("visitedAt", "desc"))
   );
 
+  visitorList.innerHTML = "";
+
   snap.forEach(d => {
     const v = d.data();
-
     const div = document.createElement("div");
     div.className = "list-item";
 
     div.innerHTML = `
       <div>
-        <strong>${v.device || "—"}</strong> • ${v.browser || "—"}<br>
+        <strong>${v.device || "—"} • ${v.browser || "—"}</strong><br>
         <small>
           IP: ${v.ip || "—"}<br>
           ${v.city || ""} ${v.region || ""} ${v.country || ""}<br>
           OS: ${v.os || "—"} | Screen: ${v.screen || "—"}<br>
-          ${v.visitedAt?.seconds
-            ? new Date(v.visitedAt.seconds * 1000).toLocaleString()
-            : ""}
+          ${
+            v.visitedAt?.seconds
+              ? new Date(v.visitedAt.seconds * 1000).toLocaleString()
+              : ""
+          }
         </small>
       </div>
       <button class="danger">Delete</button>
     `;
 
     div.querySelector(".danger").onclick = async () => {
-      const ok = confirm("Delete this visitor?");
-      if (!ok) return;
-
+      if (!confirm("Delete this visitor?")) return;
       showLoader();
       await deleteDoc(doc(db, "visitors", d.id));
       loadVisitors();
@@ -391,31 +348,25 @@ async function loadVisitors() {
 
   hideLoader();
 }
-/* ================= DELETE ALL VISITORS ================= */
-const deleteAllBtn = document.getElementById("deleteAllVisitors");
 
-deleteAllBtn.onclick = async () => {
-  const confirm1 = confirm("⚠️ This will delete ALL visitors. Continue?");
-  if (!confirm1) return;
+/* DELETE ALL VISITORS */
+if (deleteAllVisitors) {
+  deleteAllVisitors.onclick = async () => {
+    const c1 = confirm("⚠️ Delete ALL visitors?");
+    if (!c1) return;
+    const c2 = confirm("❗ This cannot be undone. Continue?");
+    if (!c2) return;
 
-  const confirm2 = confirm("❗ Are you REALLY sure? This cannot be undone.");
-  if (!confirm2) return;
+    showLoader();
 
-  showLoader();
+    const snap = await getDocs(collection(db, "visitors"));
+    const jobs = [];
+    snap.forEach(d => jobs.push(deleteDoc(doc(db, "visitors", d.id))));
+    await Promise.all(jobs);
 
-  const snap = await getDocs(collection(db, "visitors"));
-  const promises = [];
-
-  snap.forEach(d => {
-    promises.push(deleteDoc(doc(db, "visitors", d.id)));
-  });
-
-  await Promise.all(promises);
-
-  visitorList.innerHTML = "";
-  hideLoader();
-
-  alert("✅ All visitors deleted");
-};
-
+    visitorList.innerHTML = "";
+    hideLoader();
+    alert("✅ All visitors deleted");
+  };
+}
 
